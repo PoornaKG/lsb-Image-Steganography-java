@@ -1,0 +1,77 @@
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+public class Steganography2 {
+
+    // Method to hide an image
+    public static BufferedImage hideImage(BufferedImage cover, BufferedImage secret) {
+        int width = cover.getWidth();
+        int height = cover.getHeight();
+        BufferedImage combined = new BufferedImage(cover.getWidth(), cover.getHeight(), BufferedImage.TYPE_INT_RGB);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Get RGB values of the cover and secret images
+                int coverRGB = cover.getRGB(x, y);
+                if (x >= secret.getWidth() || y >= secret.getHeight())
+                {
+//                    int secretRGB = secret.getRGB(x, y);
+
+                    // Modify the least significant bits of the cover image
+                    int combinedRGB = (coverRGB & 0xFFFFFFFE);
+                    combined.setRGB(x, y, combinedRGB);
+                }
+                else
+                {
+                    int secretRGB = secret.getRGB(x, y);
+
+                    // Modify the least significant bits of the cover image
+                    int combinedRGB = (coverRGB & 0xFFFFFFFE) | (secretRGB & 0x00000001);
+//                    int combinedRGB = (secretRGB);
+                    combined.setRGB(x, y, combinedRGB);
+                }
+
+            }
+        }
+
+        return combined;
+    }
+
+    // Method to extract hidden image
+    public static BufferedImage extractImage(BufferedImage combined, int width, int height) {
+        BufferedImage extracted = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int combinedRGB = combined.getRGB(x, y);
+                // Extract the least significant bit
+//                int secretRGB = combinedRGB & 0x00000001;
+                int secretRGB = combinedRGB & 0x00000001;
+                extracted.setRGB(x, y, (secretRGB == 1 ? 0xFFFFFF : 0x000000));
+            }
+        }
+
+        return extracted;
+    }
+
+    public static void main(String[] args) {
+        try {
+//            File file = new File("C:\\Users\\User\\Desktop\\Cat03.jpg");
+//            FileInputStream fis = new FileInputStream(file);
+            BufferedImage cover = ImageIO.read(new File("C:\\Users\\User\\Desktop\\white.jpg"));
+            BufferedImage secret = ImageIO.read(new File("C:\\Users\\User\\Desktop\\text.jpg"));
+
+            BufferedImage combined = hideImage(cover, secret);
+            ImageIO.write(combined, "jpg", new File("C:\\Users\\User\\Desktop\\combined5.jpg"));
+
+            // To extract the image, assume secret image dimensions
+            BufferedImage extracted = extractImage(combined, secret.getWidth(), secret.getHeight());
+            ImageIO.write(extracted, "jpg", new File("C:\\Users\\User\\Desktop\\extracted5.jpg"));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
